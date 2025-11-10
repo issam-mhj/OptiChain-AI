@@ -7,6 +7,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - optichain_network
 
   # Jupyter Lab with PySpark and Hadoop
   jupyter:
@@ -31,6 +33,8 @@ services:
       - ./:/home/jovyan/work
     user: root
     command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+    networks:
+      - optichain_network
 
   # Streamlit App
   streamlit:
@@ -48,6 +52,138 @@ services:
       - ./app.py:/app/app.py
       - ./models:/app/models
     restart: unless-stopped
+    networks:
+      - optichain_network
+
+  # FastAPI Server for Data Streaming
+  fastapi_server:
+    build:
+      context: .
+      dockerfile: fastapi.Dockerfile
+    container_name: fastapi_server
+    ports:
+      - "8000:8000"  # FastAPI HTTP
+      - "9999:9999"  # Socket streaming
+    volumes:
+      - ./fastapi_server.py:/app/fastapi_server.py
+    restart: unless-stopped
+    networks:
+      - optichain_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Spark Streaming Consumer
+  spark_streaming:
+    build:
+      context: .
+      dockerfile: spark_streaming.Dockerfile
+    container_name: spark_streaming
+    depends_on:
+      - mongo
+      - fastapi_server
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      FASTAPI_HOST: fastapi_server
+      FASTAPI_PORT: 9999
+    volumes:
+      - ./spark_streaming_consumer.py:/home/jovyan/work/spark_streaming_consumer.py
+      - ./models:/app/models
+    networks:
+      - optichain_network
+    restart: unless-stopped
+
+  # Airflow Webserver
+  airflow_webserver:
+    build:
+      context: .
+      dockerfile: airflow.Dockerfile
+    container_name: airflow_webserver
+    depends_on:
+      - postgres
+      - airflow_init
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+      - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
+    volumes:
+      - ./airflow_streaming_dag.py:/opt/airflow/dags/airflow_streaming_dag.py
+      - airflow_logs:/opt/airflow/logs
+    networks:
+      - optichain_network
+    command: webserver
+
+  # Airflow Scheduler
+  airflow_scheduler:
+    build:
+      context: .
+      dockerfile: airflow.Dockerfile
+    container_name: airflow_scheduler
+    depends_on:
+      - postgres
+      - airflow_init
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    volumes:
+      - ./airflow_streaming_dag.py:/opt/airflow/dags/airflow_streaming_dag.py
+      - airflow_logs:/opt/airflow/logs
+    networks:
+      - optichain_network
+    command: scheduler
+
+  # Airflow Init (one-time database initialization)
+  airflow_init:
+    build:
+      context: .
+      dockerfile: airflow.Dockerfile
+    container_name: airflow_init
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - _AIRFLOW_DB_UPGRADE=true
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+    networks:
+      - optichain_network
+    command: version
+
+  # PostgreSQL for Airflow metadata
+  postgres:
+    image: postgres:13
+    container_name: airflow_postgres
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - optichain_network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
 
 volumes:
   mongo_data:
+  postgres_data:
+  airflow_logs:
+
+networks:
+  optichain_network:
+    driver: bridge
