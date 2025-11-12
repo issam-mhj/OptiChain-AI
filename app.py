@@ -11,7 +11,10 @@ st.set_page_config(
     page_title="OptiChain AI - Late Delivery Predictor",
     page_icon="📦",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'About': "OptiChain AI - Supply Chain Delivery Prediction System"
+    }
 )
 
 # Custom CSS
