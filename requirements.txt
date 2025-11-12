@@ -1,8 +1,8 @@
 pyspark==3.5.0
-streamlit
+streamlit>=1.28.0
 pymongo
 apache-airflow
-pandas
+pandas>=2.0.0
 numpy
 scikit-learn
 matplotlib
