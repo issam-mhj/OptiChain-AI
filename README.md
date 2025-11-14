@@ -76,6 +76,7 @@ OptiChain-AI provides an **AI-powered predictive system** built on three technol
 - ✅ **Data Persistence** - MongoDB storage for predictions and metrics
 - ✅ **Geospatial Analysis** - Distance-based feature engineering
 - ✅ **Model Versioning** - Track and manage model iterations
+- ✅ **Docker Support** - Containerized deployment for easy scaling
 
 ### Predictive Features
 
