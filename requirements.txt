@@ -1,6 +1,6 @@
 pyspark==3.5.0
 streamlit>=1.28.0
-pymongo
+pymongo>=4.0.0
 apache-airflow
 pandas>=2.0.0
 numpy
