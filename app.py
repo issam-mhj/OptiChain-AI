@@ -56,12 +56,13 @@ st.markdown("""
 
 @st.cache_resource
 def get_spark_session():
-    """Initialize Spark session"""
+    """Initialize Spark session with optimized configuration"""
     try:
         spark = SparkSession.builder \
             .appName("OptiChain-StreamlitApp") \
             .master("local[*]") \
             .config("spark.driver.memory", "4g") \
+            .config("spark.sql.shuffle.partitions", "10") \
             .getOrCreate()
         return spark
     except Exception as e:
