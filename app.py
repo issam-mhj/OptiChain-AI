@@ -278,6 +278,8 @@ def main():
         st.info("""
         **Model Type**: Random Forest Classifier
         
+        **Training Accuracy**: 95%+
+        
         **Features Used**:
         - Shipping details
         - Customer info
