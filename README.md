@@ -185,6 +185,7 @@ The model analyzes multiple factors:
 | Technology | Purpose |
 |------------|---------|
 | **Docker** | Containerization |
+| **Docker Compose** | Multi-container orchestration |
 | **Jupyter Lab** | Interactive development |
 | **Git** | Version control |
 
