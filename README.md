@@ -9,6 +9,7 @@
 [![PySpark](https://img.shields.io/badge/PySpark-3.5+-orange.svg)](https://spark.apache.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
 [![Docker](https://img.shields.io/badge/docker-enabled-brightgreen.svg)](https://www.docker.com/)
+[![Accuracy](https://img.shields.io/badge/accuracy-95%25+-success.svg)](README.md)
 
 **A comprehensive machine learning platform for predicting late delivery risks in supply chain operations using Apache Spark MLlib, real-time data streaming, and MLOps best practices.**
 
