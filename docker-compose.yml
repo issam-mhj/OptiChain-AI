@@ -1,0 +1,53 @@
+services:
+  # MongoDB
+  mongo:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Jupyter Lab with PySpark and Hadoop
+  jupyter:
+    build:
+      context: .
+      dockerfile: jupyter.Dockerfile
+    container_name: jupyter_lab
+    depends_on:
+      - mongo
+    ports:
+      - "8888:8888"
+      # - "4040:4040"  # Spark UI (uncomment if needed, may conflict if Spark already running)
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      MONGO_URI: mongodb://mongo:27017
+      GRANT_SUDO: "yes"
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      SPARK_HOME: /usr/local/spark
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+    volumes:
+      - ./:/home/jovyan/work
+    user: root
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+
+  # Streamlit App
+  streamlit:
+    build:
+      context: .
+      dockerfile: streamlit.Dockerfile
+    container_name: streamlit_app
+    depends_on:
+      - mongo
+    ports:
+      - "8501:8501"
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+    volumes:
+      - ./app.py:/app/app.py
+      - ./models:/app/models
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

@@ -1,0 +1,42 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# PySpark
+metastore_db/
+derby.log
+spark-warehouse/
+
+# Data files (large files - optional, uncomment if needed)
+# Data/*.csv
+# Data/*.parquet
+
+# Models (optional, uncomment if models are too large)
+# models/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
