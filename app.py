@@ -51,7 +51,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Spark Session (cached to avoid recreation)
 @st.cache_resource
 def get_spark_session():
     """Initialize Spark session"""
